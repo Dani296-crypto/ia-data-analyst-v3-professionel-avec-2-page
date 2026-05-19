@@ -1,7 +1,7 @@
 import streamlit as st
 
-if "auth" not in st.session_state:
-    st.switch_page("app")
+if "auth" not in st.session_state or not st.session_state["auth"]:
+    st.stop()
   
 import streamlit as st
 import pandas as pd
