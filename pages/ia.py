@@ -98,7 +98,7 @@ RÉPONSE :
 
     if question:
 
-        with st.spinner("Analyse en cours... 🤖"):
+        with st.spinner("Analyse en cours... "):
             result = generate_result(question)
 
         # ======================
@@ -109,8 +109,8 @@ RÉPONSE :
             "answer": result
         })
 
-        st.success("Analyse terminée ✔️")
-        st.subheader("📊 Résultat")
+        st.success("")
+        st.subheader(" Résultat")
         st.write(result)
 
     # ======================
@@ -118,12 +118,12 @@ RÉPONSE :
     # ======================
     if st.session_state.history:
 
-        st.subheader("💬 Historique")
+        st.subheader(" Historique")
 
         for i, chat in enumerate(reversed(st.session_state.history)):
 
             with st.container():
-                st.markdown("### 🔹 Interaction")
+                st.markdown("")
                 st.write("🧑 Question :", chat["question"])
                 st.write("🤖 Réponse :", chat["answer"])
                 st.markdown("---")
