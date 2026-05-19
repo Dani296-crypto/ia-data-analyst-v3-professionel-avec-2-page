@@ -13,9 +13,12 @@ if st.button("Se connecter"):
 
     if password == st.secrets["APP_PASSWORD"]:
         st.session_state["auth"] = True
-        st.success("Accès autorisé")
+        st.success("Connexion réussie ✔️")
+
     else:
         st.error("Mot de passe incorrect")
 
+# 👉 IMPORTANT : bouton pour aller à la page IA
 if st.session_state["auth"]:
-    st.info("Connexion réussie ✔️ Va dans la page IA (menu à gauche)")
+    if st.button("Aller à l'IA"):
+        st.switch_page("ia")
