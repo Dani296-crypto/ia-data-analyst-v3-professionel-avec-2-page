@@ -109,7 +109,7 @@ RÉPONSE :
             "answer": result
         })
 
-        st.success("")
+       
         st.subheader(" Résultat")
         st.write(result)
 
