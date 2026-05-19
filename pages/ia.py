@@ -9,6 +9,7 @@ if not st.session_state.get("auth", False):
     st.warning("Accès refusé")
     st.stop()
 
+st.title("IA Data Analyst")
 # ======================
 # CONFIG OPENAI
 # ======================
