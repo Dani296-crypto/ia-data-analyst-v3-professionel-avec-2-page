@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from openai import OpenAI
+import json
+import os
 
 # ======================
 # 🔒 PROTECTION
@@ -17,11 +19,32 @@ st.title("📊 IA Data Analyst PRO")
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
+MEMORY_FILE = "memory/chat_memory.json"
+
+# ======================
+# MEMORY FUNCTIONS
+# ======================
+
+def load_memory():
+
+    if os.path.exists(MEMORY_FILE):
+
+        with open(MEMORY_FILE, "r") as file:
+            return json.load(file)
+
+    return []
+
+
+def save_memory(memory):
+
+    with open(MEMORY_FILE, "w") as file:
+        json.dump(memory, file, indent=4)
+
 # ======================
 # INIT SESSION STATE
 # ======================
 if "history" not in st.session_state:
-    st.session_state.history = []
+    st.session_state.history = load_memory()
 
 if "df_loaded" not in st.session_state:
     st.session_state.df_loaded = None
@@ -109,7 +132,8 @@ RÉPONSE :
             "answer": result
         })
 
-       
+       save_memory(st.session_state.history)
+
         st.subheader(" Résultat")
         st.write(result)
 
