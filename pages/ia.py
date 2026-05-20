@@ -14,11 +14,20 @@ if not st.session_state.get("auth", False):
 # ======================
 # CONFIG
 # ======================
-st.set_page_config(page_title="IA Data Analyst PRO", layout="wide")
+st.set_page_config(
+    page_title="IA Data Analyst PRO",
+    layout="wide"
+)
+
 st.title("📊 IA Data Analyst PRO")
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = OpenAI(
+    api_key=st.secrets["OPENAI_API_KEY"]
+)
 
+# ======================
+# MEMORY FILE
+# ======================
 MEMORY_FILE = "memory/chat_memory.json"
 
 # ======================
@@ -43,6 +52,7 @@ def save_memory(memory):
 # ======================
 # INIT SESSION STATE
 # ======================
+
 if "history" not in st.session_state:
     st.session_state.history = load_memory()
 
@@ -50,27 +60,36 @@ if "df_loaded" not in st.session_state:
     st.session_state.df_loaded = None
 
 # ======================
-# UPLOAD
+# FILE UPLOAD
 # ======================
-file = st.file_uploader("📂 Upload Excel", type=["xlsx"])
+
+file = st.file_uploader(
+    "📂 Upload Excel",
+    type=["xlsx"]
+)
 
 if file:
+
     df = pd.read_excel(file)
+
     st.session_state.df_loaded = df
 
 # ======================
-# SI DATA DISPONIBLE
+# SI DONNÉES DISPONIBLES
 # ======================
+
 if st.session_state.df_loaded is not None:
 
     df = st.session_state.df_loaded
 
     st.subheader("🔍 Aperçu des données")
+
     st.dataframe(df)
 
     # ======================
     # IA FUNCTION
     # ======================
+
     def generate_result(question):
 
         prompt = f"""
@@ -115,39 +134,72 @@ RÉPONSE :
     # ======================
     # UI QUESTION
     # ======================
+
     st.subheader("🧠 Pose ta question")
 
-    question = st.text_input("Ex: Quel produit vend le plus ?")
+    question = st.text_input(
+        "Ex: Quel produit vend le plus ?"
+    )
 
-    if question:
+    # ======================
+    # BOUTON ANALYSE
+    # ======================
 
-        with st.spinner("Analyse en cours... "):
+    if st.button("Analyser"):
+
+        # Vérification question vide
+        if question.strip() == "":
+            st.warning("Pose une question")
+            st.stop()
+
+        # Analyse IA
+        with st.spinner("Analyse en cours..."):
+
             result = generate_result(question)
 
         # ======================
-        # AJOUT HISTORIQUE PROPRE
+        # AJOUT HISTORIQUE
         # ======================
+
         st.session_state.history.append({
             "question": question,
             "answer": result
         })
 
-       save_memory(st.session_state.history)
+        # ======================
+        # SAUVEGARDE JSON
+        # ======================
 
-        st.subheader(" Résultat")
+        save_memory(st.session_state.history)
+
+        # ======================
+        # AFFICHAGE RÉSULTAT
+        # ======================
+
+        st.subheader("📌 Résultat")
+
         st.write(result)
 
     # ======================
-    # HISTORIQUE PROPRE UI
+    # HISTORIQUE
     # ======================
+
     if st.session_state.history:
 
-        st.subheader(" Historique")
+        st.subheader("🕘 Historique")
 
-        for i, chat in enumerate(reversed(st.session_state.history)):
+        for chat in reversed(st.session_state.history):
 
             with st.container():
-                st.markdown("")
-                st.write("🧑 Question :", chat["question"])
-                st.write("🤖 Réponse :", chat["answer"])
+
+                st.write(
+                    "🧑 Question :",
+                    chat["question"]
+                )
+
+                st.write(
+                    "🤖 Réponse :",
+                    chat["answer"]
+                )
+
                 st.markdown("---")
