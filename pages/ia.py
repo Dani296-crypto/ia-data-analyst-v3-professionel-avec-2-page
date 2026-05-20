@@ -35,17 +35,13 @@ MEMORY_FILE = "memory/chat_memory.json"
 # ======================
 
 def load_memory():
-
     if os.path.exists(MEMORY_FILE):
-
         with open(MEMORY_FILE, "r") as file:
             return json.load(file)
-
     return []
 
-
 def save_memory(memory):
-
+    os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
     with open(MEMORY_FILE, "w") as file:
         json.dump(memory, file, indent=4)
 
@@ -63,15 +59,10 @@ if "df_loaded" not in st.session_state:
 # FILE UPLOAD
 # ======================
 
-file = st.file_uploader(
-    "📂 Upload Excel",
-    type=["xlsx"]
-)
+file = st.file_uploader("📂 Upload Excel", type=["xlsx"])
 
 if file:
-
     df = pd.read_excel(file)
-
     st.session_state.df_loaded = df
 
 # ======================
@@ -83,8 +74,19 @@ if st.session_state.df_loaded is not None:
     df = st.session_state.df_loaded
 
     st.subheader("🔍 Aperçu des données")
-
     st.dataframe(df)
+
+    # ======================
+    # CHARGER MÉMOIRE POUR IA
+    # ======================
+    def get_memory_context():
+        if len(st.session_state.history) == 0:
+            return "Aucun historique."
+
+        text = ""
+        for item in st.session_state.history[-5:]:  # on garde les 5 derniers
+            text += f"User: {item['question']}\nAI: {item['answer']}\n\n"
+        return text
 
     # ======================
     # IA FUNCTION
@@ -92,8 +94,13 @@ if st.session_state.df_loaded is not None:
 
     def generate_result(question):
 
+        memory_context = get_memory_context()
+
         prompt = f"""
 Tu es un data analyst expert universel.
+
+Voici l'historique de la conversation :
+{memory_context}
 
 MISSION :
 Analyser un fichier Excel et répondre aux questions.
@@ -101,6 +108,7 @@ Analyser un fichier Excel et répondre aux questions.
 RÈGLES :
 - Utilise uniquement les données fournies
 - Fais les calculs directement
+- Utilise l'historique si nécessaire pour comprendre le contexte
 - Si info absente → "non disponible"
 
 DONNÉES :
@@ -137,28 +145,19 @@ RÉPONSE :
 
     st.subheader("🧠 Pose ta question")
 
-    question = st.text_input(
-        "Ex: Quel produit vend le plus ?"
-    )
-
-    # ======================
-    # BOUTON ANALYSE
-    # ======================
+    question = st.text_input("Ex: Quel produit vend le plus ?")
 
     if st.button("Analyser"):
 
-        # Vérification question vide
         if question.strip() == "":
             st.warning("Pose une question")
             st.stop()
 
-        # Analyse IA
         with st.spinner("Analyse en cours..."):
-
             result = generate_result(question)
 
         # ======================
-        # AJOUT HISTORIQUE
+        # AJOUT MÉMOIRE
         # ======================
 
         st.session_state.history.append({
@@ -166,22 +165,17 @@ RÉPONSE :
             "answer": result
         })
 
-        # ======================
-        # SAUVEGARDE JSON
-        # ======================
-
         save_memory(st.session_state.history)
 
         # ======================
-        # AFFICHAGE RÉSULTAT
+        # RESULTAT
         # ======================
 
         st.subheader("📌 Résultat")
-
         st.write(result)
 
     # ======================
-    # HISTORIQUE
+    # HISTORIQUE UI
     # ======================
 
     if st.session_state.history:
@@ -191,15 +185,6 @@ RÉPONSE :
         for chat in reversed(st.session_state.history):
 
             with st.container():
-
-                st.write(
-                    "🧑 Question :",
-                    chat["question"]
-                )
-
-                st.write(
-                    "🤖 Réponse :",
-                    chat["answer"]
-                )
-
+                st.write("🧑 Question :", chat["question"])
+                st.write("🤖 Réponse :", chat["answer"])
                 st.markdown("---")
